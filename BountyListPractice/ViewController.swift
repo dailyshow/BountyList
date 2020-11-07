@@ -4,13 +4,12 @@
 //
 //  Created by isChoi on 2020/10/26.
 //
-
+// MVVM 으로 분리 했음
 import UIKit
 
 class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
-    let nameList = ["brook","chopper","franky","luffy","nami","robin","sanji","zoro"]
-    let bountyPriceList = [33000000,50,44000000,300000000,16000000,80000000,77000000,120000000]
+    let viewModel = BountyViewModel()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -23,24 +22,24 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         if segue.identifier == "showDetail" {
             let detailVC = segue.destination as? DetailViewController
             if let index = sender as? Int {
-                detailVC?.name = nameList[index]
-                detailVC?.bounty = bountyPriceList[index]
+
+                let bountyInfo = viewModel.bountyInfo(at: index)
+                detailVC?.viewModel.update(model: bountyInfo)
             }
         }
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return nameList.count
+        return viewModel.numOfBountyInfoList
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "myCell", for: indexPath) as? ListCell else {
             return UITableViewCell()
         }
-        let img = UIImage(named: "\(nameList[indexPath.row]).jpg")
-        cell.imgView.image = img
-        cell.nameLabel.text = nameList[indexPath.row]
-        cell.bountyLabel.text = "\(bountyPriceList[indexPath.row])"
+        
+        let bountyInfo = viewModel.bountyInfo(at: indexPath.row)
+        cell.update(model: bountyInfo)
         
         return cell
     }
@@ -58,4 +57,47 @@ class ListCell: UITableViewCell {
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var bountyLabel: UILabel!
     
+    func update(model: BountyInfo) {
+        imgView.image = model.image
+        nameLabel.text = model.name
+        bountyLabel.text = "\(model.bounty)"
+    }
 }
+
+// Model
+struct BountyInfo {
+    var name: String
+    var bounty: Int
+    
+    var image: UIImage? {
+        return UIImage(named: "\(name).jpg")
+    }
+    
+    init(name: String, bounty: Int) {
+        self.name = name
+        self.bounty = bounty
+    }
+}
+
+// ViewModel
+class BountyViewModel {
+    let bountyInfoList: [BountyInfo] = [
+        BountyInfo(name: "brook", bounty: 33000000),
+        BountyInfo(name: "chopper", bounty: 50),
+        BountyInfo(name: "franky", bounty: 44000000),
+        BountyInfo(name: "luffy", bounty: 300000000),
+        BountyInfo(name: "nami", bounty: 16000000),
+        BountyInfo(name: "robin", bounty: 80000000),
+        BountyInfo(name: "sanji", bounty: 77000000),
+        BountyInfo(name: "zoro", bounty: 120000000),
+    ]
+
+    var numOfBountyInfoList: Int {
+        return bountyInfoList.count
+    }
+    
+    func bountyInfo(at index: Int) -> BountyInfo{
+        return bountyInfoList[index]
+    }
+}
+
